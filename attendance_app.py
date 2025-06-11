@@ -16,9 +16,11 @@ st.write("📍 Please allow location access in your browser to mark attendance."
 # Get browser location
 location = streamlit_js_eval(js_expressions="navigator.geolocation", key="get_location")
 
-# Process location
+# Check for location
 address = None
-if location and location.get("coords"):
+if not location or not location.get("coords"):
+    st.warning("⚠️ Could not detect your location. Please allow location access and refresh the page.")
+else:
     lat = location["coords"]["latitude"]
     lon = location["coords"]["longitude"]
     try:
