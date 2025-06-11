@@ -1,4 +1,3 @@
 streamlit-js-eval
 pandas
-geopy==2.4.0
 openpyxl
