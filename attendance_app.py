@@ -45,7 +45,7 @@ st.markdown("<div class='title'>OneAir Attendance Portal</div>", unsafe_allow_ht
 # Attendance Form
 with st.form("attendance_form"):
     name = st.text_input("👤 Name")
-    group = st.selectbox("👥 Group", ["Sales", "Office", "Management", "Other"])
+    group = st.selectbox("👥 Group", ["Sales", "After Market", "Services", "Office Staff"])
     status = st.radio("🕒 Attendance Type", ["Start Time (Check-In)", "End Time (Check-Out)"])
     remarks = st.text_area("📝 Remarks (optional)")
     submitted = st.form_submit_button("Submit Attendance")
