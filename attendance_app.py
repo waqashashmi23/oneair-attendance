@@ -39,8 +39,8 @@ with st.form("attendance_form"):
     submitted = st.form_submit_button("Submit Attendance")
 
     if submitted:
-        if not name or not address:
-            st.error("Please fill all fields and ensure location is enabled.")
+        if not name or not address or address in ["Location not found", "Location lookup failed"]:
+            st.error("❗ Please fill all fields and ensure location is enabled.")
         else:
             # Get current time in Pakistan timezone
             pk_tz = timezone("Asia/Karachi")
