@@ -1,28 +1,62 @@
 import streamlit as st
-from streamlit_js_eval import streamlit_js_eval
+import streamlit.components.v1 as components
 from geopy.geocoders import Nominatim
 import pandas as pd
 from datetime import datetime
 from pytz import timezone
 import os
+import json
 
 # Set up the page
 st.set_page_config(page_title="OneAir Attendance", layout="centered")
 st.markdown("<h1 style='color:red;'>OneAir Attendance Portal</h1>", unsafe_allow_html=True)
 
-# Prompt for location permission
 st.write("📍 Please allow location access in your browser to mark attendance.")
 
-# Get browser location
-location = streamlit_js_eval(js_expressions="navigator.geolocation", key="get_location")
+# JavaScript to get location and send to Streamlit
+components.html("""
+    <script>
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const coords = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            };
+            const streamlitEvent = new CustomEvent("streamlit:location", {
+                detail: coords
+            });
+            window.dispatchEvent(streamlitEvent);
+        },
+        function(error) {
+            const streamlitEvent = new CustomEvent("streamlit:location", {
+                detail: {error: error.message}
+            });
+            window.dispatchEvent(streamlitEvent);
+        }
+    );
+    </script>
+""", height=0)
 
-# Check for location
+# Location input placeholder
+location_data = st.experimental_get_query_params().get("location")
+
+# Use session state to cache location
+if "coords" not in st.session_state:
+    st.session_state.coords = None
+
+# Capture event from browser
+location_event = st.experimental_get_query_params()
+if "lat" in location_event and "lon" in location_event:
+    st.session_state.coords = {
+        "latitude": float(location_event["lat"][0]),
+        "longitude": float(location_event["lon"][0])
+    }
+
 address = None
-if not location or not location.get("coords"):
-    st.warning("⚠️ Could not detect your location. Please allow location access and refresh the page.")
-else:
-    lat = location["coords"]["latitude"]
-    lon = location["coords"]["longitude"]
+lat = lon = None
+if st.session_state.coords:
+    lat = st.session_state.coords["latitude"]
+    lon = st.session_state.coords["longitude"]
     try:
         geolocator = Nominatim(user_agent="oneair-attendance")
         location_name = geolocator.reverse((lat, lon), language='en')
