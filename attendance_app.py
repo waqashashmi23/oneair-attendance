@@ -39,9 +39,8 @@ with st.form("attendance_form"):
             st.error("Please fill all fields and ensure location is enabled.")
         else:
             from pytz import timezone
-pakistan_tz = timezone("Asia/Karachi")
-timestamp = datetime.now(pakistan_tz).strftime("%Y-%m-%d %I:%M:%S %p")
-
+              pakistan_tz = timezone("Asia/Karachi")
+              timestamp = datetime.now(pakistan_tz).strftime("%Y-%m-%d %I:%M:%S %p")
             new_data = pd.DataFrame([{
                 "Name": name,
                 "Group": group,
