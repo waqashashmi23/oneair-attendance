@@ -1,3 +1,36 @@
+from pytz import timezone  # place this import at the top of your file
+
+...
+
+if submitted:
+    if not name or not address:
+        st.error("Please fill all fields and ensure location is enabled.")
+    else:
+        pakistan_tz = timezone("Asia/Karachi")
+        timestamp = datetime.now(pakistan_tz).strftime("%Y-%m-%d %I:%M:%S %p")
+        
+        new_data = pd.DataFrame([{
+            "Name": name,
+            "Group": group,
+            "Status": status,
+            "Timestamp": timestamp,
+            "Location": address,
+            "Remarks": remarks
+        }])
+
+        file = "attendance_records.xlsx"
+        if os.path.exists(file):
+            existing = pd.read_excel(file)
+            df = pd.concat([existing, new_data], ignore_index=True)
+        else:
+            df = new_data
+
+        df.to_excel(file, index=False)
+        st.success("✅ Attendance recorded!")
+
+
+
+
 import streamlit as st
 from streamlit_js_eval import streamlit_js_eval
 from geopy.geocoders import Nominatim
