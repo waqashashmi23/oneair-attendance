@@ -1,105 +1,64 @@
 import streamlit as st
+from streamlit_js_eval import streamlit_js_eval
+from geopy.geocoders import Nominatim
 import pandas as pd
 from datetime import datetime
-from geopy.geocoders import Nominatim
 import os
-import base64
-import json
 
-# Set page config
-st.set_page_config(page_title="OneAir Attendance", page_icon="📅", layout="centered")
+st.set_page_config(page_title="OneAir Attendance", layout="centered")
 
-# JavaScript to get geolocation
-def get_location_script():
-    return """
-    <script>
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const coords = {
-                lat: position.coords.latitude,
-                lon: position.coords.longitude
-            };
-            const input = document.getElementById("geo-data");
-            input.value = JSON.stringify(coords);
-            input.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-    );
-    </script>
-    """
+st.markdown("<h1 style='color:red;'>OneAir Attendance Portal</h1>", unsafe_allow_html=True)
 
-# Title & Branding
-st.markdown("""
-    <h1 style='text-align: center; color: red;'>OneAir Attendance System</h1>
-    <h4 style='text-align: center;'>Submit your Check-In / Check-Out attendance with location</h4>
-""", unsafe_allow_html=True)
+st.write("📍 Please allow location access in your browser to mark attendance.")
 
-# Form
-with st.form("attendance_form"):
-    name = st.text_input("Full Name")
-    group = st.text_input("Department / Group")
-    action_type = st.selectbox("Action", ["Check-In", "Check-Out"])
-    remarks = st.text_area("Remarks (e.g., Late, On the Way, Left Early, etc.)")
+# Get location from browser
+location = streamlit_js_eval(js_expressions="navigator.geolocation", key="get_location")
 
-    # Hidden input for JS location
-    geo_input = st.text_input("Geo", key="geo_data", value="", label_visibility="collapsed")
-    st.markdown(get_location_script(), unsafe_allow_html=True)
+if location and location.get("coords"):
+    lat = location["coords"]["latitude"]
+    lon = location["coords"]["longitude"]
 
-    submit = st.form_submit_button("Submit Attendance")
-
-# Handle submission
-if submit:
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    location_name = "Unknown"
-
-    try:
-        geo = json.loads(geo_input)
-        lat, lon = geo["lat"], geo["lon"]
-
-        # Get location name
-        geolocator = Nominatim(user_agent="oneair_attendance")
-        location = geolocator.reverse((lat, lon), timeout=10)
-        if location:
-            location_name = location.address
-    except Exception as e:
-        st.warning("Could not detect location automatically.")
-        location_name = "Location fetch failed"
-
-    # Save attendance
-    data = {
-        "Name": name,
-        "Group": group,
-        "Action": action_type,
-        "Timestamp": timestamp,
-        "Location": location_name,
-        "Remarks": remarks
-    }
-
-    file_path = "attendance_records.xlsx"
-    if os.path.exists(file_path):
-        df = pd.read_excel(file_path)
-        df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
-    else:
-        df = pd.DataFrame([data])
-
-    df.to_excel(file_path, index=False)
-    st.success("\u2705 Attendance successfully recorded!")
-
-    # Download link
-    with open(file_path, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode()
-        href = f'<a href="data:application/octet-stream;base64,{b64}" download="attendance_records.xlsx">\ud83d\udcc4 Download Excel File</a>'
-        st.markdown(href, unsafe_allow_html=True)
-
-# Footer
-st.markdown("""
-    <hr>
-    <div style='text-align: center;'>
-        <small>Powered by OneAir IT | Location enabled attendance system</small>
-    </div>
-""", unsafe_allow_html=True)
-if os.path.exists("attendance_records.xlsx"):
-    df_data = pd.read_excel("attendance_records.xlsx")
-    st.subheader("📊 Current Attendance Records")
-    st.dataframe(df_data)
+    # Get location name using geopy
+    geolocator = Nominatim(user_agent="oneair-attendance")
+    location_name = geolocator.reverse((lat, lon), language='en')
+    address = location_name.address if location_name else "Location not found"
 else:
-    st.warning("No attendance data found yet.")
+    address = None
+
+# Attendance Form
+with st.form("attendance_form"):
+    name = st.text_input("Name")
+    group = st.selectbox("Group", ["Sales", "Office", "Management", "Other"])
+    status = st.radio("Attendance Type", ["Start Time (Check-In)", "End Time (Check-Out)"])
+    remarks = st.text_area("Remarks (e.g., Late, On the Way, etc.)")
+
+    submitted = st.form_submit_button("Submit Attendance")
+
+    if submitted:
+        if not name or not address:
+            st.error("Please fill all fields and ensure location is enabled.")
+        else:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            new_data = pd.DataFrame([{
+                "Name": name,
+                "Group": group,
+                "Status": status,
+                "Timestamp": timestamp,
+                "Location": address,
+                "Remarks": remarks
+            }])
+            file = "attendance_records.xlsx"
+            if os.path.exists(file):
+                existing = pd.read_excel(file)
+                df = pd.concat([existing, new_data], ignore_index=True)
+            else:
+                df = new_data
+            df.to_excel(file, index=False)
+            st.success("✅ Attendance recorded!")
+
+# Show current records
+if os.path.exists("attendance_records.xlsx"):
+    df = pd.read_excel("attendance_records.xlsx")
+    st.subheader("📊 Current Attendance Records")
+    st.dataframe(df)
+
