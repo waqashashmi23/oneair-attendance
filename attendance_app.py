@@ -97,3 +97,9 @@ st.markdown("""
         <small>Powered by OneAir IT | Location enabled attendance system</small>
     </div>
 """, unsafe_allow_html=True)
+if os.path.exists("attendance_records.xlsx"):
+    df_data = pd.read_excel("attendance_records.xlsx")
+    st.subheader("📊 Current Attendance Records")
+    st.dataframe(df_data)
+else:
+    st.warning("No attendance data found yet.")
