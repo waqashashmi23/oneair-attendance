@@ -198,7 +198,8 @@ with st.form("attendance_form"):
                 df[ts_col] = pd.to_datetime(df[ts_col], errors='coerce')
                 df['Date'] = df[ts_col].dt.strftime('%d-%m-%Y')
                 df['Time'] = df[ts_col].dt.strftime('%I:%M:%S %p')
-
+                
+        st.write("Current columns in DataFrame:", df.columns.tolist())
         already_on_leave = ((df["Name"] == name) & (df["Date"] == date_today) & (df["Status"] == "On Leave")).any()
 
         action_text, auto_status, visit_number = "", "-", ""
