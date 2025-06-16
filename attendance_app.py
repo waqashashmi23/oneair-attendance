@@ -166,7 +166,8 @@ def find_open_visit(df, name, date):
 with st.form("attendance_form"):
     mode = st.selectbox("📍 Attendance Mode", ["Office", "Visit"])
     name = st.text_input("👤 Name")
-    group = st.selectbox("👥 Group", ["Sales", "Office", "Management", "Other"])
+    Department = st.selectbox("👥 Department", ["Sales", "Services", "After Market"])
+    Team = st.selectbox("👥 Team", ["Pumps", "Compressor"])
     status = st.radio("🕒 Attendance Type", ["Check In", "Check Out", "Start Time", "End Time", "On Leave"], horizontal=True)
     remarks = st.text_area("📝 Remarks (optional)")
     submitted = st.form_submit_button("Submit Attendance")
@@ -240,7 +241,8 @@ with st.form("attendance_form"):
 
         new_row = pd.DataFrame([{
             "Name": name,
-            "Group": group,
+            "Department": Department,
+            "Team": Team,
             "Action": action_text,
             "Status": status,
             "Date": date_today,
