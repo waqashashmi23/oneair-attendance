@@ -167,7 +167,7 @@ with st.form("attendance_form"):
     mode = st.selectbox("📍 Attendance Mode", ["Office", "Visit"])
     name = st.text_input("👤 Name")
     group = st.selectbox("👥 Group", ["Sales", "Services", "After Market", "Other"])
-    group = st.selectbox("👥 Team", ["Pumps", "Compressor"])
+    team = st.selectbox("👥 Team", ["Pumps", "Compressor"])
     status = st.radio("🕒 Attendance Type", ["Check In", "Check Out", "Start Time", "End Time", "On Leave"], horizontal=True)
     remarks = st.text_area("📝 Remarks (optional)")
     submitted = st.form_submit_button("Submit Attendance")
