@@ -166,8 +166,7 @@ def find_open_visit(df, name, date):
 with st.form("attendance_form"):
     mode = st.selectbox("📍 Attendance Mode", ["Office", "Visit"])
     name = st.text_input("👤 Name")
-    group = st.selectbox("👥 Group", ["Sales", "Services", "After Market", "Other"])
-    group = st.selectbox("👥 Team", ["Pumps", "Compressor"])
+    group = st.selectbox("👥 Group", ["Sales", "Office", "Management", "Other"])
     status = st.radio("🕒 Attendance Type", ["Check In", "Check Out", "Start Time", "End Time", "On Leave"], horizontal=True)
     remarks = st.text_area("📝 Remarks (optional)")
     submitted = st.form_submit_button("Submit Attendance")
@@ -179,27 +178,10 @@ with st.form("attendance_form"):
 
         pk_tz = timezone("Asia/Karachi")
         now = datetime.now(pk_tz)
-        date_today = now.strftime("%d-%m-%Y")
+        date_today = now.strftime("%Y-%m-%d")
         time_now = now.strftime("%I:%M:%S %p")
 
         df = pd.read_excel(file_path)
-
-        # Clean up column names
-        df.columns = df.columns.str.strip()
-
-        # Ensure 'Date' and 'Time' columns exist
-        if 'Date' not in df.columns or 'Time' not in df.columns:
-            ts_col = None
-            for col in ['Timestamp', 'DateTime', 'Date Time']:
-                if col in df.columns:
-                    ts_col = col
-                    break
-            if ts_col:
-                df[ts_col] = pd.to_datetime(df[ts_col], errors='coerce')
-                df['Date'] = df[ts_col].dt.strftime('%d-%m-%Y')
-                df['Time'] = df[ts_col].dt.strftime('%I:%M:%S %p')
-                
-        st.write("Current columns in DataFrame:", df.columns.tolist())
         already_on_leave = ((df["Name"] == name) & (df["Date"] == date_today) & (df["Status"] == "On Leave")).any()
 
         action_text, auto_status, visit_number = "", "-", ""
@@ -268,6 +250,7 @@ with st.form("attendance_form"):
             "Remarks": remarks,
             "Auto Status": auto_status,
             "Visit Number": visit_number,
+
         }])
 
         df = pd.concat([df, new_row], ignore_index=True)
@@ -278,7 +261,7 @@ with st.form("attendance_form"):
 if os.path.exists(file_path):
     st.markdown("### 🔐 View Attendance Records")
     role = st.radio("Select your role", ["Employee", "Admin"], horizontal=True)
-
+    
     df = pd.read_excel(file_path)
     df = df.loc[:, ~df.columns.astype(str).str.contains("^Unnamed|^0$")]
 
