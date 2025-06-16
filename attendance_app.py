@@ -179,7 +179,7 @@ with st.form("attendance_form"):
 
         pk_tz = timezone("Asia/Karachi")
         now = datetime.now(pk_tz)
-        date_today = now.strftime("%Y-%m-%d")
+        date_today = now.strftime("%d-%m-%Y")
         time_now = now.strftime("%I:%M:%S %p")
 
         df = pd.read_excel(file_path)
