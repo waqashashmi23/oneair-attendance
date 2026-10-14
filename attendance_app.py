@@ -270,7 +270,7 @@ if role == "Employee":
             st.info("No records found for that name.")
         else:
             st.dataframe(
-                filtered.style.applymap(highlight_status, subset=["Auto Status"]),
+                filtered.style.map(highlight_status, subset=["Auto Status"]),
                 use_container_width=True,
                 hide_index=True,
             )
